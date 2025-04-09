@@ -11,4 +11,4 @@ COPY . .
 
 EXPOSE 8888
 
-CMD ["bun", "run", "dev", "--port", "8888"]
+CMD ["bun", "run", "dev", "--host", "0.0.0.0", "--port", "8888"]
