@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import "./App.css";
 
+import Actions from "./components/agent-actions/Actions";
+
 interface Message {
   id: string;
   from?: string;
@@ -16,9 +18,30 @@ interface Message {
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const [prosodyStatus, setProsodyStatus] = useState<boolean | null>(true);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<number | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+
+  const calculateColor = (conversation_id: string) => {
+    // Use the specified regex to extract the main parts of the conversation_id
+    const regex = /(.+@prosody)\/?.{0,8}-(.+@prosody)/;
+    const match = conversation_id.match(regex);
+
+    // If we have a match, use the two captured groups, otherwise use the original string
+    const cleanConversationId = match
+      ? `${match[1]},${match[2]}`
+      : conversation_id;
+
+    // Calculate hash based on the cleaned conversation ID
+    let hash = 0;
+    for (let i = 0; i < cleanConversationId.length; i++) {
+      hash = cleanConversationId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    const hue = hash % 360;
+    return `hsl(${hue}, 70%, 70%)`;
+  };
 
   const connectWebSocket = () => {
     if (
@@ -33,25 +56,21 @@ function App() {
       reconnectTimeoutRef.current = null;
     }
 
-    const ws_url: string =
-      import.meta.env.VITE_WS_SERVER || "ws://192.168.237.57:3000/ws";
+    const ws_url: string = import.meta.env.VITE_PROSODY_API_SERVER
+      ? `ws://${import.meta.env.VITE_PROSODY_API_SERVER}/ws`
+      : "ws://localhost:3000/ws";
+
     wsRef.current = new WebSocket(ws_url);
 
     wsRef.current.onmessage = (event: MessageEvent) => {
       const message: Message = JSON.parse(event.data);
 
       // Calculate color from conversation_id
-      let hash = 0;
-      for (let i = 0; i < message.conversation_id.length; i++) {
-        hash = message.conversation_id.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      const hue = hash % 360;
-
       const parsedMessage = {
         ...message,
         from: message.from?.split("/")[0],
         to: message.to?.split("/")[0],
-        color: `hsl(${hue}, 70%, 70%)`, // Store the computed color
+        color: calculateColor(message.conversation_id),
       };
 
       setMessages((prev) => [...prev, parsedMessage]);
@@ -75,6 +94,30 @@ function App() {
         wsRef.current = null;
       }
     };
+  }, []);
+
+  useEffect(() => {
+    const status_endpoint: string = import.meta.env.VITE_PROSODY_API_SERVER
+      ? `http://${import.meta.env.VITE_PROSODY_API_SERVER}/api/status`
+      : "http://localhost:3000/api/status";
+    const fetchStatus = async () => {
+      try {
+        const response = await fetch(status_endpoint);
+        if (response.ok) {
+          setProsodyStatus(true);
+        } else {
+          setProsodyStatus(false);
+        }
+      } catch (error) {
+        console.error("Failed to fetch status:", error);
+        setProsodyStatus(false);
+      }
+    };
+
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -182,8 +225,17 @@ function App() {
 
   return (
     <>
-      <div className="header">eXPOSE</div>
-      <div className="stats-container"></div>
+      <div className="header">
+        <div>eXPOSE</div>
+        <div id="header-status">
+          {prosodyStatus
+            ? "prosody server running"
+            : "prosody server not available, check connectivity"}
+        </div>
+      </div>
+      <div className="panel-container">
+        <Actions />
+      </div>
       <div className="timeline-container" ref={timelineRef}>
         <div
           className="timeline-content"

@@ -3,7 +3,7 @@ FROM oven/bun:latest
 WORKDIR /app
 
 # Set the websocket environment variable
-ENV VITE_WS_SERVER="ws://localhost:3000/ws"
+ENV VITE_PROSODY_API_SERVER="localhost:3000"
 
 # Copy package files and install dependencies
 COPY package.json ./
