@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import Action from "../Action/Action";
+
 import "./Timeline.css";
 
 interface Message {
@@ -195,7 +197,10 @@ export const Timeline = () => {
             className="timeline-row"
             style={{ width: `${timelineWidth}px` }}
           >
-            <div className="agent-label">{agent}</div>
+            <div className="agent-meta">
+              <div className="agent-name">{agent}</div>
+              <Action />
+            </div>
             <div className="agent-timeline">
               {messages
                 .filter((msg) => msg.from === agent)

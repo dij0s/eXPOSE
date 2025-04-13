@@ -1,4 +1,6 @@
-function Actions() {
+import { BiSolidCameraOff } from "react-icons/bi";
+
+function Action() {
   const handleBanAgent = async () => {
     try {
       const response = await fetch("http://localhost:3000/api/ban", {
@@ -26,13 +28,7 @@ function Actions() {
     }
   };
 
-  return (
-    <div className="actions-container">
-      <button className="action-button" onClick={handleBanAgent}>
-        Ban Calibration Agent
-      </button>
-    </div>
-  );
+  return <BiSolidCameraOff onClick={handleBanAgent} />;
 }
 
-export default Actions;
+export default Action;

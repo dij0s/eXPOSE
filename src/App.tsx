@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import "./App.css";
-import Actions from "./components/Actions/Actions";
 import Timeline from "./components/Timeline/Timeline";
+import "./App.css";
 
 function App() {
   const [prosodyStatus, setProsodyStatus] = useState<boolean | null>(true);
@@ -40,9 +39,7 @@ function App() {
             : "prosody server not available, check connectivity"}
         </div>
       </div>
-      <div className="panel-container">
-        <Actions />
-      </div>
+      <div className="panel-container"></div>
       <Timeline />
     </>
   );

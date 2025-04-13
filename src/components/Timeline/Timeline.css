@@ -26,7 +26,7 @@
     min-width: max-content;
 }
 
-.agent-label {
+.agent-meta {
     position: sticky;
     left: 0px;
     padding-left: 40px;
@@ -37,6 +37,14 @@
     z-index: 1;
     background: #f5f5f5;
     padding-right: 20px;
+}
+
+.agent-meta > svg {
+    margin-left: 10px;
+}
+
+.agent-meta > svg:hover {
+    cursor: pointer;
 }
 
 .agent-timeline {
