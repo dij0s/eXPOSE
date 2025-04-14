@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useWebSocket } from "../WebsocketProvider/WebsocketProvider";
-// import "./AgentStatus.css";
+import "./AgentsStatus.css";
 
 enum AgentStatus {
   OFF = "OFF",
@@ -10,7 +10,7 @@ enum AgentStatus {
 
 interface Message {
   type?: string;
-  body?: string;
+  state?: string;
 }
 
 interface AgentStatusUpdate {
@@ -18,7 +18,7 @@ interface AgentStatusUpdate {
   status: AgentStatus;
 }
 
-function AgentStatusComponent() {
+const AgentStatusComponent = () => {
   const { webSocket } = useWebSocket();
   const [agentStatuses, setAgentStatuses] = useState<
     Record<string, AgentStatus>
@@ -30,8 +30,11 @@ function AgentStatusComponent() {
     const handleMessage = (event: MessageEvent) => {
       const message: Message = JSON.parse(event.data);
 
-      if (message.type === "state_update" && message.body) {
-        const statusUpdate: AgentStatusUpdate = JSON.parse(message.body);
+      if (message.type === "state_update" && message.state) {
+        const statusUpdate: AgentStatusUpdate = {
+          agent: "robot",
+          status: message.state?.toUpperCase() as AgentStatus,
+        };
         setAgentStatuses((prevStatus) => ({
           ...prevStatus,
           [statusUpdate.agent]: statusUpdate.status,
@@ -43,17 +46,11 @@ function AgentStatusComponent() {
     return () => webSocket.removeEventListener("message", handleMessage);
   }, [webSocket]);
 
-  const getStatusColor = (status: AgentStatus) => {
-    switch (status) {
-      case AgentStatus.OFF:
-        return "#ff4444";
-      case AgentStatus.IDLE:
-        return "#ffeb3b";
-      case AgentStatus.EXECUTING:
-        return "#4caf50";
-      default:
-        return "#gray";
-    }
+  const getStatusClass = (
+    dotStatus: AgentStatus,
+    currentStatus: AgentStatus,
+  ): string => {
+    return `status-dot ${currentStatus === dotStatus ? "active" : ""} ${dotStatus.toLowerCase()}`;
   };
 
   return (
@@ -63,18 +60,21 @@ function AgentStatusComponent() {
         {Object.entries(agentStatuses).map(([agent, status]) => (
           <div key={agent} className="agent-status-card">
             <div className="agent-name">{agent}</div>
-            <div
-              className="status-indicator"
-              style={{
-                backgroundColor: getStatusColor(status),
-              }}
-            />
-            <div className="agent-status">{status}</div>
+            <div className="status-line">
+              <div className="status-dots">
+                <div className={getStatusClass(AgentStatus.OFF, status)} />
+                <div className={getStatusClass(AgentStatus.IDLE, status)} />
+                <div
+                  className={getStatusClass(AgentStatus.EXECUTING, status)}
+                />
+              </div>
+              <div className="status-label">{status}</div>
+            </div>
           </div>
         ))}
       </div>
     </div>
   );
-}
+};
 
 export default AgentStatusComponent;

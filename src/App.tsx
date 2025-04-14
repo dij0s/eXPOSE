@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { WebSocketProvider } from "./components/WebsocketProvider/WebsocketProvider";
 
 import Timeline from "./components/Timeline/Timeline";
+import AgentsStatus from "./components/AgentsStatus/AgentsStatus";
 
 import "./App.css";
 
@@ -42,7 +43,9 @@ function App() {
             : "prosody server not available, check connectivity"}
         </div>
       </div>
-      <div className="panel-container"></div>
+      <div className="panel-container">
+        <AgentsStatus />
+      </div>
       <Timeline />
     </WebSocketProvider>
   );
