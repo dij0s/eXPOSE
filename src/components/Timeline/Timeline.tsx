@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { useWebSocket } from "../WebsocketProvider/WebsocketProvider";
 import Action from "../Action/Action";
-
 import "./Timeline.css";
 
 interface Message {
@@ -15,11 +15,10 @@ interface Message {
   color?: string;
 }
 
-export const Timeline = () => {
+const Timeline = () => {
+  const { webSocket } = useWebSocket();
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<number | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
 
   const calculateColor = (conversation_id: string) => {
@@ -38,56 +37,27 @@ export const Timeline = () => {
     return `hsl(${hue}, 70%, 70%)`;
   };
 
-  const connectWebSocket = () => {
-    if (
-      wsRef.current?.readyState === WebSocket.OPEN ||
-      wsRef.current?.readyState === WebSocket.CONNECTING
-    ) {
-      return;
-    }
-
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
-
-    const ws_url: string = import.meta.env.VITE_PROSODY_API_SERVER
-      ? `ws://${import.meta.env.VITE_PROSODY_API_SERVER}/ws`
-      : "ws://localhost:3000/ws";
-
-    wsRef.current = new WebSocket(ws_url);
-
-    wsRef.current.onmessage = (event: MessageEvent) => {
-      const message: Message = JSON.parse(event.data);
-      const parsedMessage = {
-        ...message,
-        from: message.from?.split("/")[0],
-        to: message.to?.split("/")[0],
-        color: calculateColor(message.conversation_id),
-      };
-
-      setMessages((prev) => [...prev, parsedMessage]);
-    };
-
-    wsRef.current.onclose = () => {
-      reconnectTimeoutRef.current = window.setTimeout(() => {
-        connectWebSocket();
-      }, 5000);
-    };
-  };
-
   useEffect(() => {
-    connectWebSocket();
-    return () => {
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-      if (wsRef.current) {
-        wsRef.current.close();
-        wsRef.current = null;
+    if (!webSocket) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      const message: Message = JSON.parse(event.data);
+
+      if (message.type !== "state_update") {
+        const parsedMessage = {
+          ...message,
+          from: message.from?.split("/")[0],
+          to: message.to?.split("/")[0],
+          color: calculateColor(message.conversation_id),
+        };
+
+        setMessages((prev) => [...prev, parsedMessage]);
       }
     };
-  }, []);
+
+    webSocket.addEventListener("message", handleMessage);
+    return () => webSocket.removeEventListener("message", handleMessage);
+  }, [webSocket]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -199,7 +169,7 @@ export const Timeline = () => {
           >
             <div className="agent-meta">
               <div className="agent-name">{agent}</div>
-              <Action />
+              <Action agent={agent} />
             </div>
             <div className="agent-timeline">
               {messages
@@ -218,9 +188,7 @@ export const Timeline = () => {
                         borderLeft: `4px solid ${msg.color}`,
                       }}
                     >
-                      <div className="message-sender">
-                        <div className="message-sender">To: {msg.to}</div>
-                      </div>
+                      <div className="message-sender">To: {msg.to}</div>
                       {renderMessageContent(msg.body, msg.id)}
                       <div className="message-time">
                         {formatTime(msg.timestamp)}

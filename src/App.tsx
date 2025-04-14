@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
+import { WebSocketProvider } from "./components/WebsocketProvider/WebsocketProvider";
+
 import Timeline from "./components/Timeline/Timeline";
+
 import "./App.css";
 
 function App() {
@@ -30,7 +33,7 @@ function App() {
   }, []);
 
   return (
-    <>
+    <WebSocketProvider>
       <div className="header">
         <div>eXPOSE</div>
         <div id="header-status">
@@ -41,7 +44,7 @@ function App() {
       </div>
       <div className="panel-container"></div>
       <Timeline />
-    </>
+    </WebSocketProvider>
   );
 }
 

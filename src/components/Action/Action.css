@@ -1,0 +1,10 @@
+.agent-meta > svg {
+    margin-left: 10px;
+    color: #999;
+    transition: color 0.1s ease-in;
+}
+
+.agent-meta > svg:hover {
+    cursor: pointer;
+    color: black;
+}
