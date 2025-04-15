@@ -11,33 +11,44 @@ enum AgentStatus {
 interface Message {
   type?: string;
   state?: string;
+  agent_jid: string;
+  label: string;
 }
 
 interface AgentStatusUpdate {
   agent: string;
   status: AgentStatus;
+  description: string;
 }
 
 const AgentStatusComponent = () => {
   const { webSocket } = useWebSocket();
   const [agentStatuses, setAgentStatuses] = useState<
-    Record<string, AgentStatus>
-  >({});
+    Record<string, { status: AgentStatus; description: string }>
+  >({
+    "alpha-pi-4b-agent-1": { status: AgentStatus.OFF, description: "OFF" },
+    "alpha-pi-4b-agent-2": { status: AgentStatus.OFF, description: "OFF" },
+  });
 
   useEffect(() => {
     if (!webSocket) return;
 
     const handleMessage = (event: MessageEvent) => {
       const message: Message = JSON.parse(event.data);
+      console.log(message);
 
       if (message.type === "state_update" && message.state) {
         const statusUpdate: AgentStatusUpdate = {
-          agent: "robot",
+          agent: message.agent_jid,
           status: message.state?.toUpperCase() as AgentStatus,
+          description: `${message.state?.toUpperCase()} ${message.label}`,
         };
         setAgentStatuses((prevStatus) => ({
           ...prevStatus,
-          [statusUpdate.agent]: statusUpdate.status,
+          [statusUpdate.agent]: {
+            status: statusUpdate.status,
+            description: statusUpdate.description,
+          },
         }));
       }
     };
@@ -55,23 +66,24 @@ const AgentStatusComponent = () => {
 
   return (
     <div className="agent-status-container">
-      <h2>Robot Agents Status</h2>
       <div className="agent-status-grid">
-        {Object.entries(agentStatuses).map(([agent, status]) => (
-          <div key={agent} className="agent-status-card">
-            <div className="agent-name">{agent}</div>
-            <div className="status-line">
-              <div className="status-dots">
-                <div className={getStatusClass(AgentStatus.OFF, status)} />
-                <div className={getStatusClass(AgentStatus.IDLE, status)} />
-                <div
-                  className={getStatusClass(AgentStatus.EXECUTING, status)}
-                />
+        {Object.entries(agentStatuses).map(
+          ([agent, { status, description }]) => (
+            <div key={agent} className="agent-status-card">
+              <div className="agent-label">{agent}</div>
+              <div className="status-line">
+                <div className="status-dots">
+                  <div className={getStatusClass(AgentStatus.OFF, status)} />
+                  <div className={getStatusClass(AgentStatus.IDLE, status)} />
+                  <div
+                    className={getStatusClass(AgentStatus.EXECUTING, status)}
+                  />
+                </div>
+                <div className="status-label">{description}</div>
               </div>
-              <div className="status-label">{status}</div>
             </div>
-          </div>
-        ))}
+          ),
+        )}
       </div>
     </div>
   );

@@ -1,76 +1,56 @@
 .agent-status-container {
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin: 20px;
-}
-
-.agent-status-container h2 {
-    margin-bottom: 20px;
-    color: #2c3e50;
-    font-size: 1.5rem;
-    font-weight: 600;
+    width: 100%;
+    height: 30%;
+    padding: 0 50px 0 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 
 .agent-status-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .agent-status-card {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    width: 45%;
     display: flex;
     flex-direction: column;
-    gap: 15px;
     transition:
         transform 0.2s ease,
         box-shadow 0.2s ease;
 }
 
-.agent-status-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.agent-name {
-    font-weight: 600;
-    color: #2c3e50;
-    font-size: 1.1rem;
+.agent-label {
+    font-size: 1rem;
+    text-align: center;
+    padding-bottom: 24px;
 }
 
 .status-line {
     display: flex;
     flex-direction: column;
-    gap: 12px;
 }
 
 .status-dots {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: #f1f3f5;
-    padding: 12px 24px;
-    border-radius: 25px;
     position: relative;
-    min-width: 180px;
 }
 
 .status-dots::before {
     content: "";
     position: absolute;
-    left: 24px;
-    right: 24px;
-    height: 3px;
-    background-color: #dee2e6;
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    background-color: rgb(181, 181, 181, 0.2);
     top: 50%;
     transform: translateY(-50%);
-    z-index: 0;
-    border-radius: 1.5px;
 }
 
 .status-dot {
@@ -80,8 +60,11 @@
     position: relative;
     z-index: 1;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    opacity: 0.25;
-    border: 2px solid transparent;
+    opacity: 0.2;
+}
+
+.status-dot.active {
+    opacity: 1;
 }
 
 .status-dot.off {
@@ -96,47 +79,21 @@
     background-color: #4caf50;
 }
 
-.status-dot.active {
-    transform: scale(1.3);
-    opacity: 1;
-    border-color: white;
-}
-
 .status-dot.active.off {
-    box-shadow: 0 0 12px rgba(255, 68, 68, 0.5);
+    box-shadow: 0 0 12px rgba(255, 68, 68, 0.7);
 }
 
 .status-dot.active.idle {
-    box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.7);
 }
 
 .status-dot.active.executing {
-    box-shadow: 0 0 12px rgba(76, 175, 80, 0.5);
+    box-shadow: 0 0 12px rgba(76, 175, 80, 0.7);
 }
 
 .status-label {
     text-align: center;
-    font-size: 0.9rem;
-    color: #6c757d;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    padding-top: 8px;
+    font-size: 0.8rem;
     transition: color 0.3s ease;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .agent-status-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .agent-status-container {
-        margin: 10px;
-        padding: 15px;
-    }
-
-    .status-dots {
-        padding: 10px 20px;
-        min-width: 150px;
-    }
 }
