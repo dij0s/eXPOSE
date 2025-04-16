@@ -52,15 +52,28 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         ? `ws://${import.meta.env.VITE_PROSODY_API_SERVER}/ws`
         : "ws://localhost:3000/ws";
 
-      wsRef.current = new WebSocket(ws_url);
+      const ws = new WebSocket(ws_url);
 
-      wsRef.current.onopen = () => {
+      // Set up message handler before assigning to wsRef
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "initial_states" && data.states) {
+            setIsConnected(true);
+            setError(null);
+          }
+        } catch (error) {
+          console.error("Failed to parse WebSocket message:", error);
+        }
+      };
+
+      ws.onopen = () => {
         reconnectAttempts.current = 0; // Reset attempts on successful connection
         setIsConnected(true);
         setError(null);
       };
 
-      wsRef.current.onclose = (event) => {
+      ws.onclose = (event) => {
         setIsConnected(false);
 
         // Only attempt to reconnect if we haven't exceeded max attempts
@@ -83,6 +96,8 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
           );
         }
       };
+
+      wsRef.current = ws;
     } catch (err) {
       setError(`Connection error: ${err.message}`);
     }

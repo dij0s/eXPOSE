@@ -13,7 +13,7 @@ interface Message {
   state?: string;
   agent_jid: string;
   label: string;
-  states?: Record<string, { status: AgentStatus; description: string }>; // Add this line
+  states?: Record<string, { status: AgentStatus; description: string }>;
 }
 
 interface AgentStatusUpdate {

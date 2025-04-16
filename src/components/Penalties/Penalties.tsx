@@ -1,5 +1,7 @@
 import { FC, useState, useEffect } from "react";
 
+import "./Penalties.css";
+
 const Penalties: FC = () => {
   const [penaltiesAgent1, setPenaltiesAgent1] = useState<number>(() =>
     parseInt(localStorage.getItem("penaltiesAgent1") || "0"),
@@ -25,12 +27,6 @@ const Penalties: FC = () => {
     }
   };
 
-  // Add a reset function if needed
-  const handleReset = () => {
-    setPenaltiesAgent1(0);
-    setPenaltiesAgent2(0);
-  };
-
   return (
     <div className="penalties-container">
       <div className="penalties-agent">
@@ -51,7 +47,6 @@ const Penalties: FC = () => {
         </div>
         <div>Penalty score: {penaltiesAgent2}</div>
       </div>
-      <button onClick={handleReset}>Reset Penalties</button>
     </div>
   );
 };
