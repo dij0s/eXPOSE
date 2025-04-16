@@ -30,7 +30,7 @@ function Action({ agent }: ActionProps) {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/ban", {
+      const response = await fetch(`http://localhost:3000/api/ban`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -13,7 +13,7 @@ function App() {
   useEffect(() => {
     const status_endpoint: string = import.meta.env.VITE_PROSODY_API_SERVER
       ? `http://${import.meta.env.VITE_PROSODY_API_SERVER}/api/status`
-      : "http://localhost:3000/api/status";
+      : `http://${window.location.hostname}:3000/api/status`;
     const fetchStatus = async () => {
       try {
         const response = await fetch(status_endpoint);
