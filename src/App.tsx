@@ -11,8 +11,8 @@ function App() {
   const [prosodyStatus, setProsodyStatus] = useState<boolean | null>(true);
 
   useEffect(() => {
-    const status_endpoint: string = import.meta.env.VITE_PROSODY_API_SERVER
-      ? `http://${import.meta.env.VITE_PROSODY_API_SERVER}/api/status`
+    const status_endpoint: string = import.meta.env.VITE_BACKEND_HOST
+      ? `http://${import.meta.env.VITE_BACKEND_HOST}/api/status`
       : `http://${window.location.hostname}:3000/api/status`;
     const fetchStatus = async () => {
       try {

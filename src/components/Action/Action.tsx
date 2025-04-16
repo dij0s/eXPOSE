@@ -30,7 +30,10 @@ function Action({ agent }: ActionProps) {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/ban`, {
+      const ban_endpoint: string = import.meta.env.VITE_BACKEND_HOST
+        ? `http://${import.meta.env.VITE_BACKEND_HOST}/api/ban`
+        : `http://${window.location.hostname}:3000/api/ban`;
+      const response = await fetch(ban_endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

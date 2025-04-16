@@ -92,8 +92,8 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     }
 
     try {
-      const ws_url: string = import.meta.env.VITE_PROSODY_API_SERVER
-        ? `ws://${import.meta.env.VITE_PROSODY_API_SERVER}/ws`
+      const ws_url: string = import.meta.env.VITE_BACKEND_HOST
+        ? `ws://${import.meta.env.VITE_BACKEND_HOST}/ws`
         : `ws://${window.location.hostname}:3000/ws`;
 
       const ws = new WebSocket(ws_url);
