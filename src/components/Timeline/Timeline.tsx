@@ -80,6 +80,7 @@ const Timeline = () => {
             <img
               src={imageData}
               alt="Message content"
+              title={body}
               className={`message-image ${selectedImageId === messageId ? "show" : ""}`}
               onError={() => <div className="message-body">{body}</div>}
             />

@@ -2,9 +2,6 @@ FROM oven/bun:latest
 
 WORKDIR /app
 
-# Set the websocket environment variable
-ENV VITE_PROSODY_API_SERVER="localhost:3000"
-
 # Copy package files and install dependencies
 COPY package.json ./
 RUN bun install
