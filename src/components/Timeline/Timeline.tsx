@@ -16,48 +16,9 @@ interface Message {
 }
 
 const Timeline = () => {
-  const { webSocket } = useWebSocket();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { messages } = useWebSocket();
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
-
-  const calculateColor = (conversation_id: string) => {
-    const regex = /(.+@prosody)\/?.{0,8}-(.+@prosody)/;
-    const match = conversation_id.match(regex);
-    const cleanConversationId = match
-      ? `${match[1]},${match[2]}`
-      : conversation_id;
-
-    let hash = 0;
-    for (let i = 0; i < cleanConversationId.length; i++) {
-      hash = cleanConversationId.charCodeAt(i) + ((hash << 5) - hash);
-    }
-
-    const hue = hash % 360;
-    return `hsl(${hue}, 70%, 70%)`;
-  };
-
-  useEffect(() => {
-    if (!webSocket) return;
-
-    const handleMessage = (event: MessageEvent) => {
-      const message: Message = JSON.parse(event.data);
-
-      if (message.type === "chat") {
-        const parsedMessage = {
-          ...message,
-          from: message.from?.split("/")[0],
-          to: message.to?.split("/")[0],
-          color: calculateColor(message.conversation_id),
-        };
-
-        setMessages((prev) => [...prev, parsedMessage]);
-      }
-    };
-
-    webSocket.addEventListener("message", handleMessage);
-    return () => webSocket.removeEventListener("message", handleMessage);
-  }, [webSocket]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -161,44 +122,50 @@ const Timeline = () => {
   return (
     <div className="timeline-container" ref={timelineRef}>
       <div className="timeline-content" style={{ width: `${timelineWidth}px` }}>
-        {getUniqueAgents().map((agent) => (
-          <div
-            key={agent}
-            className="timeline-row"
-            style={{ width: `${timelineWidth}px` }}
-          >
-            <div className="agent-meta">
-              <div className="agent-name">{agent}</div>
-              <Action agent={agent} />
-            </div>
-            <div className="agent-timeline">
-              {messages
-                .filter((msg) => msg.from === agent)
-                .map((msg) => (
-                  <div
-                    key={msg.id}
-                    className="timeline-message"
-                    style={{
-                      left: `${getMessagePosition(msg)}px`,
-                    }}
-                  >
+        {getUniqueAgents().length === 0 ? (
+          <div className="timeline-backoff">
+            <span>Awaiting XMPP Events</span>
+          </div>
+        ) : (
+          getUniqueAgents().map((agent) => (
+            <div
+              key={agent}
+              className="timeline-row"
+              style={{ width: `${timelineWidth}px` }}
+            >
+              <div className="agent-meta">
+                <div className="agent-name">{agent}</div>
+                <Action agent={agent} />
+              </div>
+              <div className="agent-timeline">
+                {messages
+                  .filter((msg) => msg.from === agent)
+                  .map((msg) => (
                     <div
-                      className="message-content"
+                      key={msg.id}
+                      className="timeline-message"
                       style={{
-                        borderLeft: `4px solid ${msg.color}`,
+                        left: `${getMessagePosition(msg)}px`,
                       }}
                     >
-                      <div className="message-sender">To: {msg.to}</div>
-                      {renderMessageContent(msg.body, msg.id)}
-                      <div className="message-time">
-                        {formatTime(msg.timestamp)}
+                      <div
+                        className="message-content"
+                        style={{
+                          borderLeft: `4px solid ${msg.color}`,
+                        }}
+                      >
+                        <div className="message-sender">To: {msg.to}</div>
+                        {renderMessageContent(msg.body, msg.id)}
+                        <div className="message-time">
+                          {formatTime(msg.timestamp)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

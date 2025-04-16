@@ -27,27 +27,37 @@ const Penalties: FC = () => {
     }
   };
 
+  const handlePenaltiesReset = () => {
+    setPenaltiesAgent1(0);
+    setPenaltiesAgent2(0);
+  };
+
   return (
-    <div className="penalties-container">
-      <div className="penalties-agent">
-        <div
-          className="penalties-button"
-          onClick={() => handlePenaltyIncrement(1)}
-        >
-          Add penalty
+    <>
+      <div className="penalties-container">
+        <div className="penalties-agent">
+          <div
+            className="penalties-button"
+            onClick={() => handlePenaltyIncrement(1)}
+          >
+            Add penalty
+          </div>
+          <div>Penalty score: {penaltiesAgent1}</div>
         </div>
-        <div>Penalty score: {penaltiesAgent1}</div>
-      </div>
-      <div className="penalties-agent">
-        <div
-          className="penalties-button"
-          onClick={() => handlePenaltyIncrement(2)}
-        >
-          Add penalty
+        <div className="penalties-agent">
+          <div
+            className="penalties-button"
+            onClick={() => handlePenaltyIncrement(2)}
+          >
+            Add penalty
+          </div>
+          <div>Penalty score: {penaltiesAgent2}</div>
         </div>
-        <div>Penalty score: {penaltiesAgent2}</div>
       </div>
-    </div>
+      <div className="penalties-button" onClick={handlePenaltiesReset}>
+        reset
+      </div>
+    </>
   );
 };
 

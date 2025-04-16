@@ -8,12 +8,25 @@ import {
 } from "react";
 import { Notification } from "../Notification/Notification";
 
+interface Message {
+  id: string;
+  from?: string;
+  to?: string;
+  body?: string;
+  type?: string;
+  timestamp: number;
+  direction: "sent" | "received";
+  conversation_id: string;
+  color?: string;
+}
+
 interface WebSocketContextValue {
   sendMessage?: (message: unknown) => void;
   webSocket: WebSocket | null;
   isConnected: boolean;
   error: string | null;
   agentStatuses: Record<string, { status: string; description: string }>;
+  messages: Message[]; // Add messages to the context
 }
 
 const WebSocketContext = createContext<WebSocketContextValue>({
@@ -24,6 +37,7 @@ const WebSocketContext = createContext<WebSocketContextValue>({
     "alpha-pi-4b-agent-1": { status: "OFF", description: "OFF" },
     "alpha-pi-4b-agent-2": { status: "OFF", description: "OFF" },
   },
+  messages: [], // Initialize empty messages array
 });
 
 export const useWebSocket = () => useContext(WebSocketContext);
@@ -39,6 +53,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const [error, setError] = useState<string | null>(null);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
+  const [messages, setMessages] = useState<Message[]>([]); // Add messages state
 
   const [agentStatuses, setAgentStatuses] = useState<
     Record<string, { status: string; description: string }>
@@ -46,6 +61,22 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     "alpha-pi-4b-agent-1": { status: "OFF", description: "OFF" },
     "alpha-pi-4b-agent-2": { status: "OFF", description: "OFF" },
   });
+
+  const calculateColor = (conversation_id: string) => {
+    const regex = /(.+@prosody)\/?.{0,8}-(.+@prosody)/;
+    const match = conversation_id.match(regex);
+    const cleanConversationId = match
+      ? `${match[1]},${match[2]}`
+      : conversation_id;
+
+    let hash = 0;
+    for (let i = 0; i < cleanConversationId.length; i++) {
+      hash = cleanConversationId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    const hue = hash % 360;
+    return `hsl(${hue}, 70%, 70%)`;
+  };
 
   const connectWebSocket = () => {
     if (
@@ -67,20 +98,31 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
       const ws = new WebSocket(ws_url);
 
-      // Set up message handler before assigning to wsRef
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+
+          // Handle different message types
           if (data.type === "initial_states" && data.states) {
             setAgentStatuses(data.states);
           } else if (data.type === "state_update" && data.state) {
+            const stateUpper = data.state.toUpperCase();
             setAgentStatuses((prev) => ({
               ...prev,
               [data.agent_jid]: {
-                status: data.state.toUpperCase(),
-                description: `${data.state.toUpperCase()} ${data.label}`,
+                status: stateUpper,
+                description: `${stateUpper} ${data.label}`,
               },
             }));
+          } else if (data.type === "chat") {
+            // Handle chat messages
+            const parsedMessage = {
+              ...data,
+              from: data.from?.split("/")[0],
+              to: data.to?.split("/")[0],
+              color: calculateColor(data.conversation_id),
+            };
+            setMessages((prev) => [...prev, parsedMessage]);
           }
         } catch (error) {
           console.error("Failed to parse WebSocket message:", error);
@@ -88,7 +130,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       };
 
       ws.onopen = () => {
-        reconnectAttempts.current = 0; // Reset attempts on successful connection
+        reconnectAttempts.current = 0;
         setIsConnected(true);
         setError(null);
       };
@@ -96,7 +138,6 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       ws.onclose = (event) => {
         setIsConnected(false);
 
-        // Only attempt to reconnect if we haven't exceeded max attempts
         if (reconnectAttempts.current < maxReconnectAttempts) {
           const timeout = Math.min(
             1000 * Math.pow(2, reconnectAttempts.current),
@@ -126,19 +167,17 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   useEffect(() => {
     connectWebSocket();
 
-    // Cleanup function
     return () => {
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
       if (wsRef.current) {
-        // Prevent reconnection attempts during unmount
         wsRef.current.onclose = null;
         wsRef.current.close();
         wsRef.current = null;
       }
     };
-  }, []); // Empty dependency array means this effect runs once on mount
+  }, []);
 
   const sendMessage = (message: unknown) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -156,6 +195,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         isConnected,
         error,
         agentStatuses,
+        messages,
       }}
     >
       {children}
