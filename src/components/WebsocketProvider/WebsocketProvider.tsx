@@ -35,7 +35,6 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const maxReconnectAttempts = 5;
 
   const connectWebSocket = () => {
-    // Don't try to connect if we already have a connection
     if (
       wsRef.current?.readyState === WebSocket.OPEN ||
       wsRef.current?.readyState === WebSocket.CONNECTING
@@ -43,7 +42,6 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       return;
     }
 
-    // Clear any existing reconnect timeouts
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;

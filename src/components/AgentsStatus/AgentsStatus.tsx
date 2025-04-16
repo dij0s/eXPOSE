@@ -13,6 +13,7 @@ interface Message {
   state?: string;
   agent_jid: string;
   label: string;
+  states?: Record<string, { status: AgentStatus; description: string }>; // Add this line
 }
 
 interface AgentStatusUpdate {
@@ -37,7 +38,9 @@ const AgentStatusComponent = () => {
       const message: Message = JSON.parse(event.data);
       console.log(message);
 
-      if (message.type === "state_update" && message.state) {
+      if (message.type === "initial_states" && message.states) {
+        setAgentStatuses(message.states);
+      } else if (message.type === "state_update" && message.state) {
         const statusUpdate: AgentStatusUpdate = {
           agent: message.agent_jid,
           status: message.state?.toUpperCase() as AgentStatus,
