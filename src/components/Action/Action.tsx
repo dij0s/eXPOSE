@@ -1,8 +1,6 @@
 import { BiSolidCameraOff } from "react-icons/bi";
-import { ToastContainer, toast } from "react-toastify";
-import { useState } from "react";
-
-import "react-toastify/dist/ReactToastify.css";
+import { useState, useEffect } from "react";
+import { Notification } from "../Notification/Notification";
 import "./Action.css";
 
 interface ActionProps {
@@ -11,6 +9,20 @@ interface ActionProps {
 
 function Action({ agent }: ActionProps) {
   const [isBanned, setIsBanned] = useState(false);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
+
+  // Clear notification after 3 seconds
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   const handleBanAgent = async () => {
     if (isBanned) {
@@ -37,9 +49,9 @@ function Action({ agent }: ActionProps) {
 
       const ban_timeout = data.ban_timeout;
       setIsBanned(true);
-      toast.success(`Agent ${agent} banned successfully`, {
-        position: "top-right",
-        autoClose: 3000,
+      setNotification({
+        message: `Agent ${agent} banned successfully`,
+        type: "success",
       });
 
       // Reset the banned state after the timeout
@@ -48,14 +60,12 @@ function Action({ agent }: ActionProps) {
       }, ban_timeout);
     } catch (error) {
       console.error("Error banning agent:", error);
-      toast.error(
-        "Failed to ban agent: " +
+      setNotification({
+        message:
+          "Failed to ban agent: " +
           (error instanceof Error ? error.message : "Unknown error"),
-        {
-          position: "top-right",
-          autoClose: 3500,
-        },
-      );
+        type: "error",
+      });
     }
   };
 
@@ -68,14 +78,9 @@ function Action({ agent }: ActionProps) {
           cursor: isBanned ? "not-allowed" : "pointer",
         }}
       />
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        style={{ zIndex: 1 }}
-      />
+      {notification && (
+        <Notification message={notification.message} type={notification.type} />
+      )}
     </>
   );
 }

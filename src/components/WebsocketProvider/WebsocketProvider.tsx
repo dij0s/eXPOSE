@@ -6,18 +6,24 @@ import {
   ReactNode,
   useState,
 } from "react";
+import { Notification } from "../Notification/Notification";
 
 interface WebSocketContextValue {
   sendMessage?: (message: unknown) => void;
   webSocket: WebSocket | null;
   isConnected: boolean;
   error: string | null;
+  agentStatuses: Record<string, { status: string; description: string }>;
 }
 
 const WebSocketContext = createContext<WebSocketContextValue>({
   webSocket: null,
   isConnected: false,
   error: null,
+  agentStatuses: {
+    "alpha-pi-4b-agent-1": { status: "OFF", description: "OFF" },
+    "alpha-pi-4b-agent-2": { status: "OFF", description: "OFF" },
+  },
 });
 
 export const useWebSocket = () => useContext(WebSocketContext);
@@ -33,6 +39,13 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const [error, setError] = useState<string | null>(null);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
+
+  const [agentStatuses, setAgentStatuses] = useState<
+    Record<string, { status: string; description: string }>
+  >({
+    "alpha-pi-4b-agent-1": { status: "OFF", description: "OFF" },
+    "alpha-pi-4b-agent-2": { status: "OFF", description: "OFF" },
+  });
 
   const connectWebSocket = () => {
     if (
@@ -59,8 +72,15 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         try {
           const data = JSON.parse(event.data);
           if (data.type === "initial_states" && data.states) {
-            setIsConnected(true);
-            setError(null);
+            setAgentStatuses(data.states);
+          } else if (data.type === "state_update" && data.state) {
+            setAgentStatuses((prev) => ({
+              ...prev,
+              [data.agent_jid]: {
+                status: data.state.toUpperCase(),
+                description: `${data.state.toUpperCase()} ${data.label}`,
+              },
+            }));
           }
         } catch (error) {
           console.error("Failed to parse WebSocket message:", error);
@@ -135,26 +155,11 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         sendMessage,
         isConnected,
         error,
+        agentStatuses,
       }}
     >
       {children}
-      {error && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: 16,
-            right: 16,
-            padding: "8px 16px",
-            backgroundColor: "rgba(255, 0, 0, 0.1)",
-            border: "1px solid red",
-            borderRadius: 4,
-            color: "red",
-            fontSize: 14,
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {error && <Notification message={error} type="error" />}
     </WebSocketContext.Provider>
   );
 };

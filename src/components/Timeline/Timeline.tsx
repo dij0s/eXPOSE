@@ -43,7 +43,7 @@ const Timeline = () => {
     const handleMessage = (event: MessageEvent) => {
       const message: Message = JSON.parse(event.data);
 
-      if (message.type !== "state_update") {
+      if (message.type === "chat") {
         const parsedMessage = {
           ...message,
           from: message.from?.split("/")[0],
