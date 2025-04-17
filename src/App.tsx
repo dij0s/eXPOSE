@@ -4,6 +4,7 @@ import { WebSocketProvider } from "./components/WebsocketProvider/WebsocketProvi
 import Timeline from "./components/Timeline/Timeline";
 import AgentsStatus from "./components/AgentsStatus/AgentsStatus";
 import Penalties from "./components/Penalties/Penalties";
+import Timer from "./components/Timer/Timer";
 
 import "./App.css";
 
@@ -47,7 +48,7 @@ function App() {
       <div className="panel-container">
         <div className="panel-map"></div>
         <div className="panel-meta">
-          <div className="panel-timer"></div>
+          <Timer />
           <AgentsStatus />
           <div className="panel-penalties">
             <Penalties />
