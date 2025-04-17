@@ -31,7 +31,7 @@ function Action({ agent }: ActionProps) {
 
     try {
       const ban_endpoint: string = import.meta.env.VITE_BACKEND_HOST
-        ? `http://${import.meta.env.VITE_BACKEND_HOST}/api/ban`
+        ? `http://${import.meta.env.VITE_BACKEND_HOST}:3000/api/ban`
         : `http://${window.location.hostname}:3000/api/ban`;
       const response = await fetch(ban_endpoint, {
         method: "POST",

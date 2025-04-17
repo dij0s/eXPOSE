@@ -12,7 +12,7 @@ function App() {
 
   useEffect(() => {
     const status_endpoint: string = import.meta.env.VITE_BACKEND_HOST
-      ? `http://${import.meta.env.VITE_BACKEND_HOST}/api/status`
+      ? `http://${import.meta.env.VITE_BACKEND_HOST}:3000/api/status`
       : `http://${window.location.hostname}:3000/api/status`;
     const fetchStatus = async () => {
       try {
