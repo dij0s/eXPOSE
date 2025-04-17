@@ -34,7 +34,7 @@ interface WebSocketContextValue {
   messages: Message[];
   startTimeGlobal: number | null;
   startTimeDelta: number | null;
-  isGlobalFinished: boolean;
+  globalFinish: { isFinished: boolean; timestamp: number | null };
 }
 
 const WebSocketContext = createContext<WebSocketContextValue>({
@@ -48,7 +48,7 @@ const WebSocketContext = createContext<WebSocketContextValue>({
   messages: [], // Initialize empty messages array
   startTimeGlobal: null,
   startTimeDelta: null,
-  isGlobalFinished: false,
+  globalFinish: { isFinished: false, timestamp: null },
 });
 
 export const useWebSocket = () => useContext(WebSocketContext);
@@ -70,7 +70,10 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
   const [startTimeGlobal, setStartTimeGlobal] = useState<number | null>(null);
   const [startTimeDelta, setStartTimeDelta] = useState<number | null>(null);
-  const [isGlobalFinished, setIsGlobalFinished] = useState(false);
+  const [globalFinish, setGlobalFinish] = useState<{
+    isFinished: boolean;
+    timestamp: number | null;
+  }>({ isFinished: false, timestamp: null });
 
   const [agentStatuses, setAgentStatuses] = useState<
     Record<string, { status: string; description: string }>
@@ -149,7 +152,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
             } else if (msg.event === "delta_start") {
               setStartTimeDelta(msg.timestamp);
             } else if (msg.event === "global_end") {
-              setIsGlobalFinished(true);
+              setGlobalFinish({ isFinished: true, timestamp: msg.timestamp });
             }
           }
         } catch (error) {
@@ -226,7 +229,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         messages,
         startTimeGlobal,
         startTimeDelta,
-        isGlobalFinished,
+        globalFinish,
       }}
     >
       {children}

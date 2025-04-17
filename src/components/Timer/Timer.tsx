@@ -3,7 +3,7 @@ import "./Timer.css";
 import { useWebSocket } from "../WebsocketProvider/WebsocketProvider";
 
 function Timer() {
-  const { startTimeGlobal, startTimeDelta, isGlobalFinished } = useWebSocket();
+  const { startTimeGlobal, startTimeDelta, globalFinish } = useWebSocket();
   const [nowGlobal, setNowGlobal] = useState<number | null>(null);
   const [nowDelta, setNowDelta] = useState<number | null>(null);
 
@@ -11,8 +11,10 @@ function Timer() {
   const deltaIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // Stop timer updates if global is finished but don't clear intervals
-    if (isGlobalFinished) {
+    // Stop timer updates if global is finished
+    // and ensure timer synchronization with
+    // backend timestamp
+    if (globalFinish.isFinished) {
       if (globalIntervalRef.current !== null) {
         clearInterval(globalIntervalRef.current);
         globalIntervalRef.current = null;
@@ -21,6 +23,8 @@ function Timer() {
         clearInterval(deltaIntervalRef.current);
         deltaIntervalRef.current = null;
       }
+      setNowGlobal(globalFinish.timestamp);
+      setNowDelta(globalFinish.timestamp);
       return;
     }
 
@@ -49,7 +53,7 @@ function Timer() {
         clearInterval(deltaIntervalRef.current);
       }
     };
-  }, [startTimeGlobal, startTimeDelta, isGlobalFinished]);
+  }, [startTimeGlobal, startTimeDelta, globalFinish]);
 
   let seconds: number = 0;
   let minutes: number = 0;
