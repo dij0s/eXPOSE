@@ -1,55 +1,58 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./Timer.css";
+import { useWebSocket } from "../WebsocketProvider/WebsocketProvider";
 
 function Timer() {
-  const [startTimeGlobal, setStartTimeGlobal] = useState<number | null>(null);
-  const [startTimeDelta, setStartTimeDelta] = useState<number | null>(null);
+  const { startTimeGlobal, startTimeDelta, isGlobalFinished } = useWebSocket();
   const [nowGlobal, setNowGlobal] = useState<number | null>(null);
   const [nowDelta, setNowDelta] = useState<number | null>(null);
-  const intervalRef = useRef<number | null>(null);
 
-  function handleStartGlobal() {
-    // Clear any existing timer
-    clearInterval(intervalRef.current!);
+  const globalIntervalRef = useRef<number | null>(null);
+  const deltaIntervalRef = useRef<number | null>(null);
 
-    // Reset delta timer
-    setStartTimeDelta(null);
-    setNowDelta(null);
+  useEffect(() => {
+    console.log(startTimeGlobal, startTimeDelta, isGlobalFinished);
 
-    // Start global timer
-    const now = Date.now();
-    setStartTimeGlobal(now);
-    setNowGlobal(now);
+    // Clear both timers if global is finished
+    if (isGlobalFinished) {
+      if (globalIntervalRef.current !== null) {
+        clearInterval(globalIntervalRef.current);
+        globalIntervalRef.current = null;
+      }
+      if (deltaIntervalRef.current !== null) {
+        clearInterval(deltaIntervalRef.current);
+        deltaIntervalRef.current = null;
+      }
+      return;
+    }
 
-    intervalRef.current = setInterval(() => {
+    // Handle global timer
+    if (startTimeGlobal !== null && !globalIntervalRef.current) {
+      console.log("here mgl");
       setNowGlobal(Date.now());
-    }, 10);
-  }
+      globalIntervalRef.current = setInterval(() => {
+        setNowGlobal(Date.now());
+      }, 10);
+    }
 
-  function handleStartDelta() {
-    // Clear any existing timer
-    clearInterval(intervalRef.current!);
-
-    // Stop global timer by freezing its current value
-    setNowGlobal(nowGlobal);
-
-    // Start delta timer
-    const now = Date.now();
-    setStartTimeDelta(now);
-    setNowDelta(now);
-
-    intervalRef.current = setInterval(() => {
+    // Handle delta timer
+    if (startTimeDelta !== null && !deltaIntervalRef.current) {
       setNowDelta(Date.now());
-    }, 10);
-  }
+      deltaIntervalRef.current = setInterval(() => {
+        setNowDelta(Date.now());
+      }, 10);
+    }
 
-  function handleStopDelta() {
-    // Clear any existing timer
-    clearInterval(intervalRef.current!);
-
-    // Stop delta timer by freezing its current value
-    setNowDelta(nowDelta);
-  }
+    // Cleanup function
+    return () => {
+      if (startTimeGlobal === null && globalIntervalRef.current !== null) {
+        clearInterval(globalIntervalRef.current);
+      }
+      if (startTimeDelta === null && deltaIntervalRef.current !== null) {
+        clearInterval(deltaIntervalRef.current);
+      }
+    };
+  }, [startTimeGlobal, startTimeDelta, isGlobalFinished]);
 
   let seconds: number = 0;
   let minutes: number = 0;
@@ -84,9 +87,6 @@ function Timer() {
           {msDelta.toString().padStart(2, "0")}
         </span>
       </div>
-      <div onClick={handleStartGlobal}>global</div>
-      <div onClick={handleStartDelta}>delta</div>
-      <div onClick={handleStopDelta}>stop</div>
     </div>
   );
 }

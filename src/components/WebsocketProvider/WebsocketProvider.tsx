@@ -20,13 +20,21 @@ interface Message {
   color?: string;
 }
 
+interface TimerMessage {
+  timestamp: number;
+  event: string;
+}
+
 interface WebSocketContextValue {
   sendMessage?: (message: unknown) => void;
   webSocket: WebSocket | null;
   isConnected: boolean;
   error: string | null;
   agentStatuses: Record<string, { status: string; description: string }>;
-  messages: Message[]; // Add messages to the context
+  messages: Message[];
+  startTimeGlobal: number | null;
+  startTimeDelta: number | null;
+  isGlobalFinished: boolean;
 }
 
 const WebSocketContext = createContext<WebSocketContextValue>({
@@ -38,6 +46,9 @@ const WebSocketContext = createContext<WebSocketContextValue>({
     "alpha-pi-4b-agent-2": { status: "OFF", description: "OFF" },
   },
   messages: [], // Initialize empty messages array
+  startTimeGlobal: null,
+  startTimeDelta: null,
+  isGlobalFinished: false,
 });
 
 export const useWebSocket = () => useContext(WebSocketContext);
@@ -49,11 +60,17 @@ interface WebSocketProviderProps {
 export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<number | null>(null);
+
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
+
   const [messages, setMessages] = useState<Message[]>([]); // Add messages state
+
+  const [startTimeGlobal, setStartTimeGlobal] = useState<number | null>(null);
+  const [startTimeDelta, setStartTimeDelta] = useState<number | null>(null);
+  const [isGlobalFinished, setIsGlobalFinished] = useState(false);
 
   const [agentStatuses, setAgentStatuses] = useState<
     Record<string, { status: string; description: string }>
@@ -123,6 +140,19 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
               color: calculateColor(data.conversation_id),
             };
             setMessages((prev) => [...prev, parsedMessage]);
+          } else if (data.type === "timer") {
+            const msg: TimerMessage = data.data;
+
+            // handle message event type
+            if (msg.event === "global_start") {
+              setStartTimeGlobal(msg.timestamp);
+            } else if (msg.event === "delta_start") {
+              setStartTimeDelta(msg.timestamp);
+            } else if (msg.event === "global_end") {
+              setStartTimeGlobal(null);
+              setStartTimeDelta(null);
+              setIsGlobalFinished(true);
+            }
           }
         } catch (error) {
           console.error("Failed to parse WebSocket message:", error);
@@ -196,6 +226,9 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         error,
         agentStatuses,
         messages,
+        startTimeGlobal,
+        startTimeDelta,
+        isGlobalFinished,
       }}
     >
       {children}
