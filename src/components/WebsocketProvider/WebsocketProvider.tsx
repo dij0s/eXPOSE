@@ -149,8 +149,6 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
             } else if (msg.event === "delta_start") {
               setStartTimeDelta(msg.timestamp);
             } else if (msg.event === "global_end") {
-              setStartTimeGlobal(null);
-              setStartTimeDelta(null);
               setIsGlobalFinished(true);
             }
           }

@@ -11,9 +11,7 @@ function Timer() {
   const deltaIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
-    console.log(startTimeGlobal, startTimeDelta, isGlobalFinished);
-
-    // Clear both timers if global is finished
+    // Stop timer updates if global is finished but don't clear intervals
     if (isGlobalFinished) {
       if (globalIntervalRef.current !== null) {
         clearInterval(globalIntervalRef.current);
@@ -28,7 +26,6 @@ function Timer() {
 
     // Handle global timer
     if (startTimeGlobal !== null && !globalIntervalRef.current) {
-      console.log("here mgl");
       setNowGlobal(Date.now());
       globalIntervalRef.current = setInterval(() => {
         setNowGlobal(Date.now());
