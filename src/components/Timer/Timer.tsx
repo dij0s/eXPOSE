@@ -3,7 +3,8 @@ import "./Timer.css";
 import { useWebSocket } from "../WebsocketProvider/WebsocketProvider";
 
 function Timer() {
-  const { startTimeGlobal, startTimeDelta, globalFinish } = useWebSocket();
+  const { startTimeGlobal, startTimeDelta, globalFinish, resetTimers } =
+    useWebSocket();
   const [nowGlobal, setNowGlobal] = useState<number | null>(null);
   const [nowDelta, setNowDelta] = useState<number | null>(null);
 
@@ -88,6 +89,9 @@ function Timer() {
           {msDelta.toString().padStart(2, "0")}
         </span>
       </div>
+      <span className="timer-button" onClick={resetTimers}>
+        Reset
+      </span>
     </div>
   );
 }

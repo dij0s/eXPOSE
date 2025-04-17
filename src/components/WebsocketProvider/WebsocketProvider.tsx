@@ -35,6 +35,7 @@ interface WebSocketContextValue {
   startTimeGlobal: number | null;
   startTimeDelta: number | null;
   globalFinish: { isFinished: boolean; timestamp: number | null };
+  resetTimers: () => void;
 }
 
 const WebSocketContext = createContext<WebSocketContextValue>({
@@ -49,6 +50,7 @@ const WebSocketContext = createContext<WebSocketContextValue>({
   startTimeGlobal: null,
   startTimeDelta: null,
   globalFinish: { isFinished: false, timestamp: null },
+  resetTimers: () => {},
 });
 
 export const useWebSocket = () => useContext(WebSocketContext);
@@ -74,6 +76,12 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     isFinished: boolean;
     timestamp: number | null;
   }>({ isFinished: false, timestamp: null });
+
+  const resetTimers = () => {
+    setStartTimeGlobal(null);
+    setStartTimeDelta(null);
+    setGlobalFinish({ isFinished: false, timestamp: null });
+  };
 
   const [agentStatuses, setAgentStatuses] = useState<
     Record<string, { status: string; description: string }>
@@ -166,7 +174,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         setError(null);
       };
 
-      ws.onclose = (event) => {
+      ws.onclose = () => {
         setIsConnected(false);
 
         if (reconnectAttempts.current < maxReconnectAttempts) {
@@ -190,8 +198,10 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
       };
 
       wsRef.current = ws;
-    } catch (err) {
-      setError(`Connection error: ${err.message}`);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error occurred";
+      setError(`Connection error: ${errorMessage}`);
     }
   };
 
@@ -230,6 +240,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         startTimeGlobal,
         startTimeDelta,
         globalFinish,
+        resetTimers,
       }}
     >
       {children}

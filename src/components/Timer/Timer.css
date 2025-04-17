@@ -4,7 +4,7 @@
     padding: 0 50px 0 20px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
 }
 
@@ -24,4 +24,15 @@
     font-size: 1.4rem;
     line-height: 1.2rem;
     padding-right: 4px;
+}
+
+.timer-button {
+    padding-bottom: 10px;
+    color: #999;
+    user-select: none;
+}
+
+.timer-button:hover {
+    cursor: pointer;
+    text-decoration: underline;
 }
