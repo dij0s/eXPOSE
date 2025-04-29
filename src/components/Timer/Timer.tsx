@@ -11,42 +11,31 @@ function Timer() {
   const globalIntervalRef = useRef<number | null>(null);
   const deltaIntervalRef = useRef<number | null>(null);
 
+  // Split into two separate effects to avoid one timer affecting the other
+  
+  // Handle global timer
   useEffect(() => {
-    // Stop timer updates if global is finished
-    // and ensure timer synchronization with
-    // backend timestamp
+    // Only stop the global timer when global finish is triggered
     if (globalFinish.isFinished) {
       if (globalIntervalRef.current !== null) {
         clearInterval(globalIntervalRef.current);
         globalIntervalRef.current = null;
       }
-      if (deltaIntervalRef.current !== null) {
-        clearInterval(deltaIntervalRef.current);
-        deltaIntervalRef.current = null;
-      }
       setNowGlobal(globalFinish.timestamp);
-      setNowDelta(globalFinish.timestamp);
       return;
     }
 
-    // Reset internal state if external timers are reset
+    // Reset global timer when it's explicitly reset
     if (startTimeGlobal === null) {
       if (globalIntervalRef.current !== null) {
         clearInterval(globalIntervalRef.current);
         globalIntervalRef.current = null;
       }
       setNowGlobal(null);
-    }
-    
-    if (startTimeDelta === null) {
-      if (deltaIntervalRef.current !== null) {
-        clearInterval(deltaIntervalRef.current);
-        deltaIntervalRef.current = null;
-      }
-      setNowDelta(null);
+      return;
     }
 
-    // Handle global timer
+    // Start global timer when time is available
     if (startTimeGlobal !== null && !globalIntervalRef.current) {
       setNowGlobal(Date.now());
       globalIntervalRef.current = setInterval(() => {
@@ -54,7 +43,38 @@ function Timer() {
       }, 10);
     }
 
-    // Handle delta timer
+    // Cleanup function for global timer
+    return () => {
+      if (globalIntervalRef.current !== null) {
+        clearInterval(globalIntervalRef.current);
+        globalIntervalRef.current = null;
+      }
+    };
+  }, [startTimeGlobal, globalFinish]);
+
+  // Handle delta timer separately
+  useEffect(() => {
+    // Stop delta timer on global finish
+    if (globalFinish.isFinished) {
+      if (deltaIntervalRef.current !== null) {
+        clearInterval(deltaIntervalRef.current);
+        deltaIntervalRef.current = null;
+      }
+      setNowDelta(globalFinish.timestamp);
+      return;
+    }
+    
+    // Reset delta timer when it's explicitly reset
+    if (startTimeDelta === null) {
+      if (deltaIntervalRef.current !== null) {
+        clearInterval(deltaIntervalRef.current);
+        deltaIntervalRef.current = null;
+      }
+      setNowDelta(null);
+      return;
+    }
+
+    // Start delta timer when time is available
     if (startTimeDelta !== null && !deltaIntervalRef.current) {
       setNowDelta(Date.now());
       deltaIntervalRef.current = setInterval(() => {
@@ -62,16 +82,14 @@ function Timer() {
       }, 10);
     }
 
-    // Cleanup function
+    // Cleanup function for delta timer
     return () => {
-      if (globalIntervalRef.current !== null) {
-        clearInterval(globalIntervalRef.current);
-      }
       if (deltaIntervalRef.current !== null) {
         clearInterval(deltaIntervalRef.current);
+        deltaIntervalRef.current = null;
       }
     };
-  }, [startTimeGlobal, startTimeDelta, globalFinish]);
+  }, [startTimeDelta, globalFinish]);
 
   let seconds: number = 0;
   let minutes: number = 0;
