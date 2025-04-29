@@ -156,6 +156,10 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
 
             // handle message event type
             if (msg.event === "global_start") {
+              // Reset all timers before starting a new global timer
+              setStartTimeDelta(null);
+              setGlobalFinish({ isFinished: false, timestamp: null });
+              // Set the new global start time
               setStartTimeGlobal(msg.timestamp);
             } else if (msg.event === "delta_start") {
               setStartTimeDelta(msg.timestamp);

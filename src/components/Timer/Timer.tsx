@@ -29,6 +29,23 @@ function Timer() {
       return;
     }
 
+    // Reset internal state if external timers are reset
+    if (startTimeGlobal === null) {
+      if (globalIntervalRef.current !== null) {
+        clearInterval(globalIntervalRef.current);
+        globalIntervalRef.current = null;
+      }
+      setNowGlobal(null);
+    }
+    
+    if (startTimeDelta === null) {
+      if (deltaIntervalRef.current !== null) {
+        clearInterval(deltaIntervalRef.current);
+        deltaIntervalRef.current = null;
+      }
+      setNowDelta(null);
+    }
+
     // Handle global timer
     if (startTimeGlobal !== null && !globalIntervalRef.current) {
       setNowGlobal(Date.now());
@@ -47,10 +64,10 @@ function Timer() {
 
     // Cleanup function
     return () => {
-      if (startTimeGlobal === null && globalIntervalRef.current !== null) {
+      if (globalIntervalRef.current !== null) {
         clearInterval(globalIntervalRef.current);
       }
-      if (startTimeDelta === null && deltaIntervalRef.current !== null) {
+      if (deltaIntervalRef.current !== null) {
         clearInterval(deltaIntervalRef.current);
       }
     };
