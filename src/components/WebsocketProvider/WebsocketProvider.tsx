@@ -36,6 +36,7 @@ interface WebSocketContextValue {
   startTimeDelta: number | null;
   globalFinish: { isFinished: boolean; timestamp: number | null };
   resetTimers: () => void;
+  mazeImage: string | null;
 }
 
 const WebSocketContext = createContext<WebSocketContextValue>({
@@ -51,6 +52,7 @@ const WebSocketContext = createContext<WebSocketContextValue>({
   startTimeDelta: null,
   globalFinish: { isFinished: false, timestamp: null },
   resetTimers: () => {},
+  mazeImage: null,
 });
 
 export const useWebSocket = () => useContext(WebSocketContext);
@@ -82,6 +84,8 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
     setStartTimeDelta(null);
     setGlobalFinish({ isFinished: false, timestamp: null });
   };
+
+  const [mazeImage, setMazeImage] = useState<string | null>(null);
 
   const [agentStatuses, setAgentStatuses] = useState<
     Record<string, { status: string; description: string }>
@@ -166,6 +170,8 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
             } else if (msg.event === "global_end") {
               setGlobalFinish({ isFinished: true, timestamp: msg.timestamp });
             }
+          } else if (data.type === "maze_plan") {
+            setMazeImage(data.image);
           }
         } catch (error) {
           console.error("Failed to parse WebSocket message:", error);
@@ -245,6 +251,7 @@ export const WebSocketProvider = ({ children }: WebSocketProviderProps) => {
         startTimeDelta,
         globalFinish,
         resetTimers,
+        mazeImage,
       }}
     >
       {children}

@@ -5,6 +5,7 @@ import Timeline from "./components/Timeline/Timeline";
 import AgentsStatus from "./components/AgentsStatus/AgentsStatus";
 import Penalties from "./components/Penalties/Penalties";
 import Timer from "./components/Timer/Timer";
+import Map from "./components/Map/Map";
 
 import "./App.css";
 
@@ -46,7 +47,9 @@ function App() {
         </div>
       </div>
       <div className="panel-container">
-        <div className="panel-map"></div>
+        <div className="panel-map">
+          <Map />
+        </div>
         <div className="panel-meta">
           <Timer />
           <AgentsStatus />
