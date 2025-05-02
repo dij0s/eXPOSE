@@ -12,8 +12,8 @@ function Map() {
           src={`data:image/png;base64,${mazeImage}`}
         />
       ) : (
-        <div className="panel-map-backoff">
-          <span>Awaiting maze plan</span>
+        <div className="panel-map-skeleton">
+          <div className="skeleton-animation"></div>
         </div>
       )}
     </div>

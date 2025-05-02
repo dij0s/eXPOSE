@@ -120,53 +120,85 @@ const Timeline = () => {
     maxMessagePosition + 320,
   );
 
+  const renderSkeletonTimeline = () => {
+    return (
+      <div className="timeline-skeleton">
+        {[0, 1, 2].map((agentIndex) => (
+          <div
+            key={`agent-skeleton-${agentIndex}`}
+            className="timeline-row"
+            style={{ width: `${timelineWidth}px` }}
+          >
+            <div className="agent-meta">
+              <div className="agent-name skeleton-text"></div>
+              <div className="agent-action-skeleton"></div>
+            </div>
+            <div className="agent-timeline">
+              {[0, 1, 2].map((msgIndex) => (
+                <div
+                  key={`message-skeleton-${agentIndex}-${msgIndex}`}
+                  className="timeline-message"
+                  style={{
+                    left: `${(msgIndex + agentIndex) * 320}px`,
+                  }}
+                >
+                  <div className="message-content skeleton-message">
+                    <div className="message-sender skeleton-text-sm"></div>
+                    <div className="message-body skeleton-text"></div>
+                    <div className="message-time skeleton-text-sm"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="timeline-container" ref={timelineRef}>
       <div className="timeline-content" style={{ width: `${timelineWidth}px` }}>
-        {getUniqueAgents().length === 0 ? (
-          <div className="timeline-backoff">
-            <span>Awaiting XMPP Events</span>
-          </div>
-        ) : (
-          getUniqueAgents().map((agent) => (
-            <div
-              key={agent}
-              className="timeline-row"
-              style={{ width: `${timelineWidth}px` }}
-            >
-              <div className="agent-meta">
-                <div className="agent-name">{agent}</div>
-                <Action agent={agent} />
-              </div>
-              <div className="agent-timeline">
-                {messages
-                  .filter((msg) => msg.from === agent)
-                  .map((msg) => (
-                    <div
-                      key={msg.id}
-                      className="timeline-message"
-                      style={{
-                        left: `${getMessagePosition(msg)}px`,
-                      }}
-                    >
+        {getUniqueAgents().length === 0
+          ? renderSkeletonTimeline()
+          : getUniqueAgents().map((agent) => (
+              <div
+                key={agent}
+                className="timeline-row"
+                style={{ width: `${timelineWidth}px` }}
+              >
+                <div className="agent-meta">
+                  <div className="agent-name">{agent}</div>
+                  <Action agent={agent} />
+                </div>
+                <div className="agent-timeline">
+                  {messages
+                    .filter((msg) => msg.from === agent)
+                    .map((msg) => (
                       <div
-                        className="message-content"
+                        key={msg.id}
+                        className="timeline-message"
                         style={{
-                          borderLeft: `4px solid ${msg.color}`,
+                          left: `${getMessagePosition(msg)}px`,
                         }}
                       >
-                        <div className="message-sender">To: {msg.to}</div>
-                        {renderMessageContent(msg.body, msg.id)}
-                        <div className="message-time">
-                          {formatTime(msg.timestamp)}
+                        <div
+                          className="message-content"
+                          style={{
+                            borderLeft: `4px solid ${msg.color}`,
+                          }}
+                        >
+                          <div className="message-sender">To: {msg.to}</div>
+                          {renderMessageContent(msg.body, msg.id)}
+                          <div className="message-time">
+                            {formatTime(msg.timestamp)}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                </div>
               </div>
-            </div>
-          ))
-        )}
+            ))}
       </div>
     </div>
   );
