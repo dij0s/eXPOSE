@@ -123,7 +123,7 @@ const Timeline = () => {
   const renderSkeletonTimeline = () => {
     return (
       <div className="timeline-skeleton">
-        {[0, 1, 2].map((agentIndex) => (
+        {[0, 1].map((agentIndex) => (
           <div
             key={`agent-skeleton-${agentIndex}`}
             className="timeline-row"
@@ -131,10 +131,9 @@ const Timeline = () => {
           >
             <div className="agent-meta">
               <div className="agent-name skeleton-text"></div>
-              <div className="agent-action-skeleton"></div>
             </div>
             <div className="agent-timeline">
-              {[0, 1, 2].map((msgIndex) => (
+              {Array.from({ length: agentIndex + 1 }).map((_, msgIndex) => (
                 <div
                   key={`message-skeleton-${agentIndex}-${msgIndex}`}
                   className="timeline-message"
